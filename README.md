@@ -21,7 +21,7 @@ An AI-powered chat application built with Flask and Chai Research API that enabl
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/Chatterbox-AI.git
+   git clone https://github.com/StievenW/Chatterbox-AI.git
    cd Chatterbox-AI
    ```
 
