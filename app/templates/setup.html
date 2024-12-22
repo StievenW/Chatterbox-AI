@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="setup-container">
+    <h1><i class="fas fa-robot"></i> AI Personality Setup</h1>
+    <form id="personalityForm">
+        <div class="form-section">
+            <h2><i class="fas fa-user"></i> User Information</h2>
+            <input 
+                type="text" 
+                name="userName" 
+                placeholder="Enter your name to start chatting" 
+                required 
+                autocomplete="off"
+                class="user-name-input"
+            >
+            <div class="form-feedback"></div>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-language"></i> Language Settings</h2>
+            <select name="language" id="language" class="modern-select">
+                <option value="en" selected>English</option>
+                <option value="id">Bahasa Indonesia</option>
+                <option value="jp">日本語</option>
+                <option value="kr">한국어</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-id-card"></i> AI Information</h2>
+            <input type="text" name="name" placeholder="AI Name" value="Shiina Mashiro">
+            <input type="text" name="age" placeholder="Age" value="17">
+            <input type="text" name="location" placeholder="Location" value="Tokyo, Japan">
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-brain"></i> Personality Traits</h2>
+            <textarea id="traits" name="traits" rows="4" class="traits-input">- World-renowned artist with exceptional talent
+- Lacks common sense and basic life skills
+- Emotionally reserved but deeply caring
+- Has photographic memory
+- Determined and hardworking
+- Can perfectly memorize anything she sees
+- Extremely focused on her goals</textarea>
+            <button type="button" id="generateTraits" class="modern-button">
+                <i class="fas fa-magic"></i>
+                <span>Generate Traits</span>
+                <div class="loading-spinner"></div>
+            </button>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-heart"></i> Interests & Hobbies</h2>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggleInterests" checked>
+                    <span class="slider"></span>
+                </label>
+                <span>Enable Interests</span>
+            </div>
+            <textarea id="interests" name="interests" rows="4">- Drawing manga and painting
+- Art in all forms
+- Baumkuchen cakes
+- Learning new things
+- Spending time with friends
+- Creating beautiful artworks
+- Studying manga techniques</textarea>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-comments"></i> Speech Patterns</h2>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggleSpeech" checked>
+                    <span class="slider"></span>
+                </label>
+                <span>Enable Speech Patterns</span>
+            </div>
+            <textarea id="speech" name="speech" rows="4">- Speaks in short, direct sentences
+- Has a soft, quiet voice
+- Sometimes uses unusual metaphors
+- Expresses herself through art
+- Speaks honestly without filters
+- Often misunderstands social cues</textarea>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-temperature-high"></i> Response Settings</h2>
+            <div class="slider-container">
+                <label for="temperature">Creativity Level: <span id="tempValue">0.7</span></label>
+                <input type="range" 
+                       id="temperature" 
+                       name="temperature" 
+                       min="0" 
+                       max="1" 
+                       step="0.1" 
+                       value="0.7"
+                       oninput="document.getElementById('tempValue').textContent=this.value">
+            </div>
+            <div class="form-feedback">Higher values make responses more creative but less focused.</div>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-comment-dots"></i> Initial Greetings</h2>
+            <textarea id="greetings" name="greetings" rows="8" placeholder="Enter greetings for selected language"></textarea>
+            <div class="form-feedback">Greetings will be automatically filtered based on selected language.</div>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-robot"></i> AI Avatar</h2>
+            <div class="avatar-upload">
+                <div class="avatar-preview">
+                    <img id="avatarPreview" 
+                         src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                         alt="AI Avatar">
+                </div>
+                <div class="avatar-controls">
+                    <label for="avatarInput" class="avatar-upload-btn">
+                        <i class="fas fa-camera"></i> Choose Photo
+                    </label>
+                    <input 
+                        type="file" 
+                        id="avatarInput" 
+                        accept="image/png, image/jpeg, image/jpg"
+                        style="display: none;"
+                    >
+                    <small class="avatar-hint">Recommended: Square image, max 5MB</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="modern-button">
+                <i class="fas fa-paper-plane"></i>
+                Start Chat
+            </button>
+            <button type="button" id="resetButton" class="modern-button reset-button">
+                <i class="fas fa-undo"></i>
+                Reset to Default
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Crop modal -->
+<div id="cropModal" class="crop-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="title">Crop Avatar</span>
+            <div class="crop-button-container">
+                <button id="cropButton" class="modern-button">
+                    <i class="fas fa-check"></i>
+                    Save
+                </button>
+                <button class="close" title="Close">&times;</button>
+            </div>
+        </div>
+        <div class="cropper-container">
+            <img id="cropperImage" src="" alt="Image to crop">
+        </div>
+    </div>
+</div>
+
+<!-- Reference modal remains unchanged -->
+<div id="referenceModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2><i class="fas fa-magic"></i> Generate Traits</h2>
+        <p>Describe the character you want to create:</p>
+        <input type="text" id="referenceInput" placeholder="e.g., 'a cheerful anime student'" class="modern-input">
+        <button id="confirmReference" class="modern-button">
+            <i class="fas fa-check"></i>
+            Generate
+        </button>
+    </div>
+</div>
+
+<!-- Tambahkan sebelum penutup body -->
+<div id="confirmResetModal" class="confirm-modal">
+    <div class="confirm-modal-content">
+        <div class="confirm-modal-header">
+            <i class="fas fa-exclamation-triangle warning-icon"></i>
+            <h3>Reset Confirmation</h3>
+        </div>
+        <div class="confirm-modal-body">
+            <p>Are you sure you want to reset all fields to default values?</p>
+            <p class="confirm-modal-subtitle">This action cannot be undone.</p>
+        </div>
+        <div class="confirm-modal-footer">
+            <button id="cancelReset" class="modern-button cancel-button">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+            <button id="confirmResetBtn" class="modern-button confirm-button">
+                <i class="fas fa-check"></i>
+                Reset
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('generateTraits').addEventListener('click', () => {
+    const modal = document.getElementById('referenceModal');
+    modal.style.display = 'block';
+});
+
+document.querySelector('#referenceModal .close').addEventListener('click', () => {
+    document.getElementById('referenceModal').style.display = 'none';
+    document.getElementById('referenceInput').value = '';
+});
+
+document.getElementById('confirmReference').addEventListener('click', async () => {
+    const reference = document.getElementById('referenceInput').value;
+    if (!reference) {
+        alert('Please enter a reference');
+        return;
+    }
+
+    const modal = document.getElementById('referenceModal');
+    modal.style.display = 'none';
+
+    // Show loading animation
+    const generateButton = document.getElementById('generateTraits');
+    const buttonText = generateButton.querySelector('span');
+    const spinner = generateButton.querySelector('.loading-spinner');
+    buttonText.style.display = 'none';
+    spinner.style.display = 'block';
+    generateButton.disabled = true;
+
+    try {
+        const response = await fetch('/api/generate-traits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reference })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const traitsTextarea = document.getElementById('traits');
+            
+            // Clear existing content
+            traitsTextarea.value = '';
+            
+            // Add typing animation
+            const traits = data.generatedTraits.split('\n');
+            let i = 0;
+            const typeWriter = () => {
+                if (i < traits.length) {
+                    traitsTextarea.value += traits[i] + '\n';
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            };
+            typeWriter();
+        } else {
+            throw new Error('Failed to generate traits');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to generate traits. Please try again.');
+    } finally {
+        // Hide loading animation
+        buttonText.style.display = 'inline';
+        spinner.style.display = 'none';
+        generateButton.disabled = false;
+    }
+});
+
+window.addEventListener('click', (event) => {
+    const referenceModal = document.getElementById('referenceModal');
+    const cropModal = document.getElementById('cropModal');
+    const confirmResetModal = document.getElementById('confirmResetModal');
+    
+    if (event.target === referenceModal) {
+        referenceModal.style.display = 'none';
+        document.getElementById('referenceInput').value = '';
+    }
+    
+    if (event.target === cropModal) {
+        cropModal.style.display = 'none';
+    }
+    
+    if (event.target === confirmResetModal) {
+        confirmResetModal.style.display = 'none';
+    }
+});
+
+document.getElementById('avatarPreview').addEventListener('error', function() {
+    this.src = "{{ url_for('static', filename='images/default-avatar.png') }}";
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,10 @@
+flask
+python-dotenv
+flask-sqlalchemy
+flask-migrate
+flask-login 
+requests
+Pillow
+standard-imghdr
+urllib3>=2.0.0
+requests>=2.25.1
